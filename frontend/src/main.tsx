@@ -1,5 +1,6 @@
 import React, { FormEvent, useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
+import './styles.css';
 import {
   Alert,
   Box,
@@ -32,12 +33,37 @@ type Task = { id: string; title: string; description: string; status: Status; cr
 const API = 'http://localhost:8000/api';
 const theme = createTheme({
   palette: {
-    primary: { main: '#1d4ed8' },
-    background: { default: '#f4f7fb' },
+    primary: { main: '#4f46e5' },
+    secondary: { main: '#f3f4f6' },
+    background: { default: '#f3f6fb' },
+    success: { main: '#16a34a' },
+    warning: { main: '#f59e0b' },
   },
-  shape: { borderRadius: 14 },
+  shape: { borderRadius: 16 },
   typography: {
     fontFamily: 'Inter, system-ui, sans-serif',
+    h3: { fontWeight: 800, letterSpacing: '-0.04em' },
+    h5: { fontWeight: 700 },
+    h6: { fontWeight: 700 },
+  },
+  components: {
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          boxShadow: '0 12px 30px rgba(15, 23, 42, 0.06)',
+          border: '1px solid rgba(148, 163, 184, 0.18)',
+        },
+      },
+    },
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          textTransform: 'none',
+          borderRadius: 12,
+          fontWeight: 700,
+        },
+      },
+    },
   },
 });
 
@@ -129,31 +155,54 @@ function App() {
   };
 
   const totalTasks = tasks.length;
+  const doneTasks = tasks.filter((task) => task.status === 'done').length;
+  const inProgressTasks = tasks.filter((task) => task.status === 'in_progress').length;
 
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Container maxWidth="lg" sx={{ py: 6 }}>
+      <Container maxWidth="lg" className="task-manager-shell" sx={{ py: 6 }}>
         <Stack spacing={3}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
             <Box>
-              <Typography variant="overline" color="text.secondary" sx={{ letterSpacing: 2 }}>
+              <Typography variant="overline" color="text.secondary" sx={{ letterSpacing: 2.4, fontWeight: 700 }}>
                 PRODUCTIVITY
               </Typography>
-              <Typography variant="h3" component="h1" sx={{ fontWeight: 800 }}>
+              <Typography variant="h3" component="h1">
                 Task Manager
               </Typography>
               <Typography variant="body1" color="text.secondary">
                 Keep your work organized and moving forward.
               </Typography>
             </Box>
-            <Paper elevation={0} sx={{ px: 3, py: 2, borderRadius: 3, bgcolor: 'primary.main', color: 'white' }}>
-              <Typography variant="h5" sx={{ fontWeight: 700 }}>{totalTasks}</Typography>
-              <Typography variant="caption">tasks</Typography>
+            <Paper elevation={0} sx={{ px: 2.5, py: 1.5, borderRadius: 4, bgcolor: 'linear-gradient(135deg, #4f46e5, #7c3aed)', color: 'white' }}>
+              <Typography variant="h5" sx={{ fontWeight: 800, lineHeight: 1 }}>{totalTasks}</Typography>
+              <Typography variant="caption" sx={{ opacity: 0.9 }}>total tasks</Typography>
             </Paper>
           </Box>
 
-          <Card>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' }, gap: 2 }}>
+            <Card sx={{ bgcolor: 'linear-gradient(135deg, #eef2ff, #ffffff)' }}>
+              <CardContent>
+                <Typography variant="overline" color="text.secondary">Todo</Typography>
+                <Typography variant="h4" sx={{ fontWeight: 800 }}>{tasks.filter((task) => task.status === 'todo').length}</Typography>
+              </CardContent>
+            </Card>
+            <Card sx={{ bgcolor: 'linear-gradient(135deg, #fff7ed, #ffffff)' }}>
+              <CardContent>
+                <Typography variant="overline" color="text.secondary">In progress</Typography>
+                <Typography variant="h4" sx={{ fontWeight: 800 }}>{inProgressTasks}</Typography>
+              </CardContent>
+            </Card>
+            <Card sx={{ bgcolor: 'linear-gradient(135deg, #ecfdf5, #ffffff)' }}>
+              <CardContent>
+                <Typography variant="overline" color="text.secondary">Done</Typography>
+                <Typography variant="h4" sx={{ fontWeight: 800 }}>{doneTasks}</Typography>
+              </CardContent>
+            </Card>
+          </Box>
+
+          <Card sx={{ overflow: 'visible' }}>
             <CardContent>
               <Typography variant="h5" component="h2" gutterBottom>
                 Create a task
@@ -165,6 +214,7 @@ function App() {
                   onChange={(event) => setTitle(event.target.value)}
                   required
                   fullWidth
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
                 />
                 <TextField
                   label="Description"
@@ -173,6 +223,7 @@ function App() {
                   multiline
                   minRows={3}
                   fullWidth
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
                 />
                 <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
                   <FormControl sx={{ minWidth: 180 }}>
@@ -188,7 +239,7 @@ function App() {
                       <MenuItem value="done">Done</MenuItem>
                     </Select>
                   </FormControl>
-                  <Button type="submit" variant="contained" size="large" sx={{ ml: 'auto' }}>
+                  <Button type="submit" variant="contained" size="large" sx={{ ml: 'auto', px: 3 }}>
                     Add task
                   </Button>
                 </Box>
@@ -196,7 +247,7 @@ function App() {
             </CardContent>
           </Card>
 
-          {error && <Alert severity="error">{error}</Alert>}
+          {error && <Alert severity="error" sx={{ borderRadius: 2 }}>{error}</Alert>}
 
           <Card>
             <CardContent>
@@ -207,17 +258,17 @@ function App() {
               {loading ? (
                 <Typography color="text.secondary">Loading tasks…</Typography>
               ) : tasks.length === 0 ? (
-                <Paper variant="outlined" sx={{ p: 4, textAlign: 'center', bgcolor: '#fafafa' }}>
+                <Paper variant="outlined" sx={{ p: 4, textAlign: 'center', bgcolor: '#fafafa', borderRadius: 3 }}>
                   <Typography color="text.secondary">No tasks yet. Create your first one above.</Typography>
                 </Paper>
               ) : (
                 <Stack spacing={2}>
                   {tasks.map((task) => (
-                    <Card key={task.id} variant="outlined" sx={{ bgcolor: '#fff' }}>
+                    <Card key={task.id} variant="outlined" sx={{ bgcolor: '#fff', borderRadius: 3 }}>
                       <CardContent>
-                        <Stack direction={{ xs: 'column', sm: 'row' }} sx={{ justifyContent: 'space-between', gap: 2 }}>
-                          <Box>
-                            <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 1 }}>
+                        <Stack direction={{ xs: 'column', sm: 'row' }} sx={{ justifyContent: 'space-between', gap: 2, alignItems: { xs: 'flex-start', sm: 'center' } }}>
+                          <Box sx={{ flex: 1 }}>
+                            <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 1, flexWrap: 'wrap' }}>
                               <Typography variant="h6" component="h3">
                                 {task.title}
                               </Typography>
@@ -225,7 +276,7 @@ function App() {
                                 label={task.status.replace('_', ' ')}
                                 color={task.status === 'done' ? 'success' : task.status === 'in_progress' ? 'warning' : 'default'}
                                 size="small"
-                                sx={{ textTransform: 'capitalize' }}
+                                sx={{ textTransform: 'capitalize', fontWeight: 700 }}
                               />
                             </Stack>
                             <Typography variant="body2" color="text.secondary">
